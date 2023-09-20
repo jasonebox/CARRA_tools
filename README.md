@@ -1,8 +1,10 @@
 # CARRA_tools
 
-contains 
+python codes:
 
-- [python code for resampling ERA5 to CARRA](code/resampling_ERA5_to_CARRA.py)
+- [gather_from Copernicus Climate Data Store (CDS) CARRA rainfall (rf) snowfall (sf) and 2m air temperature (t2m)](code/gather_CARRA_rf_sf_t2m.py)
+- [resampling ERA5 to CARRA](code/resampling_ERA5_to_CARRA.py)
+- [mapping CARRA or ERA5 minus CARRA](code/map_diff_CARRA_ERA5.py)
 
 ## notes
 
