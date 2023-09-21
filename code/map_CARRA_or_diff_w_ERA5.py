@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Computes and outputs .npy statistics files and a map of rainfall trending
-
-updated Nov 2022
 @author: Jason Box, GEUS, jeb@geus.dk
+
+with inputs from:
+    resampling_ERA5_to_CARRA.py
+    
+comments with !! refer to user-specific variables to possibly change
 
 """
 
@@ -45,17 +47,17 @@ lon=np.fromfile(fn, dtype=np.float32)
 lon=lon.reshape(ni, nj)
 lon=np.rot90(lon.T)
 
-#%%
+
+#%% map setup
+
+print('map setup')
+
 th=1
 font_size=18
 plt.rcParams['axes.facecolor'] = 'w'
 plt.rcParams['axes.edgecolor'] = 'k'
 plt.rcParams["font.size"] = font_size
 
-
-#%% map setup
-
-print('map setup')
 ly='x'
 
 res='l'
@@ -110,13 +112,13 @@ x, y = m(lon, lat)
 #%% map trend
 
 
-diff_w_ERA=0
+diff_w_ERA=1
 diff_name=''
 # dx=0.1
 
-var_choices=['tp']; units=" mm y $^{-1}$"
+var_choices=['tp']; units=" mm y $^{-1}$" ; vmins=[0,0,0] ; vmaxs=[3000,1000,1000] ; dx=[100,0.5,1]
 # var_choices=['rf']; units=" mm y $^{-1}$"
-var_choices=['t2m'] ; units=" °C" ; vmins=[-30,-12,-40] ; vmaxs=[10,12,9] ; dx=[1,0.5,1]
+# var_choices=['t2m'] ; units=" °C" ; vmins=[-30,-12,-40] ; vmaxs=[10,12,9] ; dx=[1,0.5,1]
 
 # var_choices=['sf']; units=" mm y $^{-1}$"
 
@@ -130,7 +132,7 @@ season='JJA'
 seasons=['ANN','JJA','DJF']
 
 # seasons=['JJA']
-# seasons=['ANN']
+seasons=['ANN']
 
 
 for ss,season in enumerate(seasons):
@@ -161,10 +163,12 @@ for ss,season in enumerate(seasons):
             plotvarb=np.fromfile(fn, dtype=np.float16)
             plotvar=plotvara-plotvarb
             plotvar=plotvar.reshape(ni, nj)
-        # slope=np.rot90(slope.T)
         plotvar=plotvar*multiplier
         if diff_w_ERA:
-            vmins=[-5,-5,-5] ; vmaxs=[5,5,5]
+            if var_choice=='t2m':
+                vmins=[-5,-5,-5] ; vmaxs=[5,5,5]
+            else:
+                vmins=[-400,-5,-5] ; vmaxs=[400,5,5]
 
             # fn='./data/ERA5/resampled/ERA5_'+var_choice+'_'+stat_type+'_'+season+'_'+str(iyear)+"-"+str(fyear)+'_1269x1069.npy'
             # temp=np.fromfile(fn, dtype=np.float16)
@@ -184,21 +188,17 @@ for ss,season in enumerate(seasons):
         # plt.title(f'CARRA {season}')
         # plt.axis('off')
         # plt.colorbar()
-        # check result
-        # plt.imshow(plotvar)
-        # plt.colorbar()
-        
+        # #%%
         print('map result')
         
         if var_choice=='rf':
-            lo=-40 ; hi=-lo ; dx=10
-            lo=-180 ; hi=-lo ; dx=10
+            lo=-40 ; hi=-lo 
+            lo=-180 ; hi=-lo 
             var_choice2='rainfall'
             maxval=1000
         if var_choice=='tp':
-            lo=-300 ; hi=-lo ; dx=10
             var_choice2='total precipitation'
-            maxval=6000
+            maxval=3000
         if var_choice=='sf':
             lo=-300 ; hi=-lo ; dx=10
             var_choice2='snowfall'

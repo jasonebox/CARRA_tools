@@ -1,42 +1,33 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Sep 20 07:28:07 2023
+@author: Jason Box, GEUS, jeb@geus.dk
 
-@author: jason
+obtains annual or seasonal means of t2m or tp from monthly CARRA data
+
 """
 
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import cm
-from mpl_toolkits.basemap import Basemap
-
 
 iyear=1991 ; fyear=2021
 n_years=fyear-iyear+1
 years=np.arange(iyear,fyear+1).astype('str')
- 
 
 ni=1269 ; nj=1069
-
 
 # base path
 path='/Users/jason/Dropbox/CARRA/CARRA_tools/'
 os.chdir(path)
 
-
-season='ANN'
-season='JJA'
-# season='DJF'
-
 seasons=['ANN','JJA','DJF']
+seasons=['ANN']
 
 var_choices=['tp']
 # var_choices=['t2m','tp']
 
 stat_type='average'
-
 
 for var_choice in var_choices:
     for season in seasons:
@@ -62,14 +53,15 @@ for var_choice in var_choices:
         if var_choice=='t2m':
             meanx=sumx/cc
         else:
-            meanx=sumx
+            meanx=sumx/31
         
         fn=f'./data/CARRA/{var_choice}_{stat_type}_{season}_{iyear}-{fyear}_{ni}x{nj}.npz'
         b = meanx.astype(np.float16)
         np.savez_compressed(fn,average=b)
-
         plt.close()
         plt.imshow(meanx)
+        # plt.imshow(compressed['carra'])
         plt.title(season)
         plt.colorbar()
         plt.show()
+        

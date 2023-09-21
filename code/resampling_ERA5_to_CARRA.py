@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """
+@author: Jason Box, GEUS, jeb@geus.dk
 
 resamples ERA5 data to CARRA grid
 
@@ -92,25 +93,29 @@ ERA5_positions = pd.DataFrame({
 "lat_e": lat_e.ravel(),})
 
 
-
 #%% load ERA5 dataset
 var_choice='sf'
 var_choice='t2m'
-# var_choice='tp'
+var_choice='tp'
 iyear=1979 ; fyear=2022
 iyear=1991 ; fyear=2021
 
 stat_type='slope' ; stat_type_name='stats'
 # stat_type='stats' ; stat_type_name='slope'
 stat_type='average' ; stat_type_name='average'
+# stat_type='mean' ; stat_type_name='average'
 
 # fn='/Users/jason/Dropbox/CARRA/CARRA_tools/data/ERA5/ERA5_'+var_choice+"_mean_"+str(iyear)+"-"+str(fyear)+".npy"
 # temp = np.fromfile(fn)#, dtype=np.float16)
 # temp = temp.reshape(720,1440)
 
-opath='/Users/jason/Dropbox/CARRA/CARRA_tools/data/'
-opath="/Users/jason/Dropbox/ERA5/output/"
-fn=opath+var_choice+"_"+stat_type+"_"+str(iyear)+"-"+str(fyear)+".nc"
+opath='/Users/jason/Dropbox/CARRA/CARRA_tools/data/ERA5/'
+# opath="/Users/jason/Dropbox/ERA5/output/"
+if var_choice=='t2m':
+    fn=opath+var_choice+"_"+stat_type+"_"+str(iyear)+"-"+str(fyear)+".nc"
+else:
+    fn=opath+var_choice+"_"+stat_type_name+"_"+str(iyear)+"-"+str(fyear)+".nc"
+
 # fn="/Users/jason/Dropbox/ERA5/output/"+var_choice+"_"+stat_type_name+"_"+str(iyear)+"-"+str(fyear)+".nc"
 ds=xr.open_dataset(fn)
 ds.variables
@@ -122,7 +127,7 @@ plt.close()
 plt.imshow(temp[1,:,:])#,vmin=0,vmax=12)
 plt.axis('off')
 # plt.title(var_choice+' '+date_stringx)
-# plt.colorbar()
+plt.colorbar()
 
 
 #%% map setup
@@ -139,9 +144,8 @@ font_size=18
 plt.rcParams['axes.facecolor'] = 'w'
 plt.rcParams['axes.edgecolor'] = 'k'
 plt.rcParams["font.size"] = font_size
-mask_svalbard=1;mask_iceland=1;mask_jan_mayen=1
 
-
+# read CARRA lat, lon and elevation
 fn='./meta/CARRA/2.5km_CARRA_west_lat_1269x1069.npy'
 lat=np.fromfile(fn, dtype=np.float32)
 lat=lat.reshape(ni, nj)
@@ -156,12 +160,12 @@ elev=elev.reshape(ni, nj)
 
 # latx=np.rot90(lat.T)
 # lonx=np.rot90(lon.T)
-offset=0
-lon=lon[offset:ni-offset,offset:nj-offset]
-lat=lat[offset:ni-offset,offset:nj-offset]
-ni-=offset*2
-nj-=offset*2
-# print(ni,nj)
+# offset=0
+# lon=lon[offset:ni-offset,offset:nj-offset]
+# lat=lat[offset:ni-offset,offset:nj-offset]
+# ni-=offset*2
+# nj-=offset*2
+
 LLlat=lat[0,0]
 LLlon=lon[0,0]-360
 # print("LL",LLlat,LLlon)
@@ -175,9 +179,7 @@ URlon=lon[ni-1,nj-1]
 # print("LR",lat[0,nj-1],lon[0,nj-1]-360)
 # print("UR",URlat,URlon)
 
-# m = Basemap(llcrnrlon=LLlon, llcrnrlat=LLlat, urcrnrlon=URlon, urcrnrlat=URlat, lat_0=72, lon_0=-36, resolution='l', projection='lcc')
 m = Basemap(llcrnrlon=LLlon, llcrnrlat=LLlat, urcrnrlon=URlon, urcrnrlat=URlat, lat_0=lat0, lon_0=lon0, resolution=res, projection='lcc')
-# x, y = m(lat, lon)
 x, y = m(lon, lat)
 #%%
 season='ANN'
@@ -185,7 +187,7 @@ season='JJA'
 # season='DJF'
 
 seasons=['ANN','JJA','DJF']
-# seasons=['ANN']
+seasons=['ANN']
 # seasons=['JJA']
 
 for ss,season in enumerate(seasons):
@@ -198,7 +200,7 @@ for ss,season in enumerate(seasons):
             ERA_data=np.nansum(temp[[0,10,11]],axis=0)
     if var_choice=='tp':
         if season=='ANN':
-            ERA_data=np.nansum(temp,axis=0)
+            ERA_data=np.nansum(temp,axis=0)/31
         if season=='JJA':
             ERA_data=np.nansum(temp[5:7],axis=0)
         if season=='DJF':
@@ -212,13 +214,13 @@ for ss,season in enumerate(seasons):
             ERA_data=np.nanmean(temp[[0,10,11]],axis=0)
     
     np.shape(ERA_data)
-    
-    # plt.close()
-    # plt.imshow(ERA_data)#,vmin=0,vmax=12)
-    # plt.axis('off')
-    # plt.title('ERA_data')
-    # plt.colorbar()
-    
+    #%%
+    plt.close()
+    plt.imshow(ERA_data)#,vmin=0,vmax=12)
+    plt.axis('off')
+    plt.title('ERA_data')
+    plt.colorbar()
+    #%%
     # print(ds.variables)
     # print(np.shape(ds.tp))
     ##%% resampling ERA to CARRA
@@ -248,10 +250,13 @@ for ss,season in enumerate(seasons):
     # new_grid = np.rot90(new_grid.reshape(ni, nj).T)
     new_grid = new_grid.reshape(ni, nj)
     
+    plt.imshow(new_grid)
+    plt.colorbar()
+    #%%
     # fn='./data/ERA5/resampled/ERA5_'+var_choice+'_'+stat_type+'_'+season+'_'+str(iyear)+"-"+str(fyear)+'_1269x1069.npy'
     # new_grid.astype(dtype=np.float16).tofile(fn)
     
-    fn=f'./data/ERA5/resampled/ERA5_{var_choice}_{stat_type}_{season}_{iyear}-{fyear}_{ni}x{nj}.npz'
+    fn=f'./data/ERA5/resampled/ERA5_{var_choice}_{stat_type_name}_{season}_{iyear}-{fyear}_{ni}x{nj}.npz'
     b = new_grid.astype(np.float16)
     np.savez_compressed(fn,average=b)
 
@@ -259,7 +264,10 @@ for ss,season in enumerate(seasons):
     
     if do_plot:
         #  visualisation
-        vmins=[-30,-12,-40] ; vmaxs=[10,12,9] ; dx=[1,0.5,1]
+        if var_choice=='t2m':
+            vmins=[-30,-12,-40] ; vmaxs=[10,12,9] ; dx=[1,0.5,1]
+        else:
+            vmins=[0,0,0] ; vmaxs=[3000,1000,1000] ; dx=[100,0.5,1]
 
         # global plot settings
         th=1
@@ -273,12 +281,15 @@ for ss,season in enumerate(seasons):
         if var_choice=='t2m':
             # cm='bwr'
             cm = plt.cm.seismic
-            units2='° C'
+            units='° C'
             cm.set_under('k')
             cm.set_over('orange')
         else:
             cmap='BrBG'
+            # cm='viridis'
+            units='mm'
         plt.close()
+        
         fig, ax = plt.subplots(figsize=(12, 12))
         
         do_regional_min_max=1
@@ -328,8 +339,7 @@ for ss,season in enumerate(seasons):
                  transform=ax.transAxes,color=color_code) ; cc+=2.
         
         mult=0.7
-        units='°C'
-        msg="overall max {:.0f}".format(np.max(plotvar))+units
+        msg="overall max {:.0f}".format(np.max(plotvar))+' '+units
         print(msg)
         plt.text(xx0, yy0+cc*dy2,msg, fontsize=font_size*mult,
           transform=ax.transAxes,color=color_code) ; cc+=1. 
