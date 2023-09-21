@@ -259,7 +259,7 @@ for ss,season in enumerate(seasons):
     
     if do_plot:
         #  visualisation
-        vmins=[-30,-12,-40] ; vmaxs=[10,9,9] ; dx=[1,0.5,1]
+        vmins=[-30,-12,-40] ; vmaxs=[10,12,9] ; dx=[1,0.5,1]
 
         # global plot settings
         th=1
